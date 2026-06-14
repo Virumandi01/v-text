@@ -1,0 +1,26 @@
+{
+  "name": "v-text",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Virumandi01/v-text.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Virumandi01/v-text/issues"
+  },
+  "homepage": "https://github.com/Virumandi01/v-text#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.3"
+  }
+}
