@@ -139,9 +139,10 @@ io.on('connection', (socket) => {
 
 // Start listening
 server.listen(PORT, () => {
-    console.log(`===================================================`);
+    console.log(`___________________________________________________`);
+    console.log('')
     console.log(`⚡ v-text Secure Messaging Engine Online`);
     console.log(`🚀 Active Port: http://localhost:${PORT}`);
     console.log(`🔒 Zero-Disk Persistence Active: Data is entirely in RAM`);
-    console.log(`===================================================`);
+    console.log(`____________________________________________________`);
 });
