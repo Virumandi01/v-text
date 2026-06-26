@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wallpaper Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: sans-serif;
+      background: #1a1a2e;
+      color: #ccc;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #panel {
+      width: 280px;
+      flex-shrink: 0;
+      background: #111;
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #panel h2 { font-size: 15px; font-weight: 600; color: #fff; }
+    .ctrl { display: flex; flex-direction: column; gap: 5px; }
+    .ctrl label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+    .ctrl input[type="text"] {
+      background: #1e1e1e; border: 1px solid #333; border-radius: 6px;
+      color: #fff; padding: 7px 10px; font-size: 13px; width: 100%;
+    }
+    .ctrl input[type="color"] {
+      width: 100%; height: 34px; border: 1px solid #333;
+      border-radius: 6px; cursor: pointer; background: none; padding: 2px;
+    }
+    .ctrl-row { display: flex; align-items: center; gap: 8px; }
+    .ctrl-row input[type="range"] { flex: 1; accent-color: #4a9eff; }
+    .ctrl-row span { min-width: 34px; text-align: right; font-size: 12px; color: #aaa; }
+    .divider { border: none; border-top: 1px solid #2a2a2a; }
+    .section-label {
+      font-size: 11px; font-weight: 600; color: #4a9eff;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .size-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .size-tab {
+      flex: 1; min-width: 60px; padding: 7px 4px; font-size: 11px;
+      font-weight: 600; border-radius: 6px; border: 1px solid #333;
+      background: #1e1e1e; color: #888; cursor: pointer; text-align: center;
+      transition: all 0.15s; line-height: 1.4;
+    }
+    .size-tab:hover { border-color: #4a9eff; color: #4a9eff; }
+    .size-tab.active { background: #4a9eff; border-color: #4a9eff; color: #fff; }
+
+    /* Format toggle */
+    .fmt-tabs { display: flex; gap: 6px; }
+    .fmt-tab {
+      flex: 1; padding: 7px; font-size: 12px; font-weight: 700;
+      border-radius: 6px; border: 1px solid #333;
+      background: #1e1e1e; color: #888; cursor: pointer; text-align: center;
+      transition: all 0.15s; letter-spacing: 0.05em;
+    }
+    .fmt-tab:hover { border-color: #4a9eff; color: #4a9eff; }
+    .fmt-tab.active { background: #22c55e; border-color: #22c55e; color: #fff; }
+
+    .dl-btn {
+      background: #4a9eff; color: #fff; border: none; border-radius: 8px;
+      padding: 9px; font-size: 13px; font-weight: 600; cursor: pointer;
+      width: 100%; margin-top: 2px;
+    }
+    .dl-btn:hover { background: #2a7fe0; }
+    .dl-btn.secondary {
+      background: #1e1e1e; border: 1px solid #333; color: #ccc; font-size: 12px;
+    }
+    .dl-btn.secondary:hover { border-color: #4a9eff; color: #4a9eff; background: #1a1a2e; }
+
+    #preview {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #0a0a0a; overflow: hidden; gap: 8px;
+    }
+    #sizeLabel { font-size: 11px; color: #555; letter-spacing: 0.05em; }
+    canvas { border-radius: 6px; box-shadow: 0 0 0 1px #222; }
+  </style>
+</head>
+<body>
+
+<div id="panel">
+  <h2>🎨 Wallpaper Generator</h2>
+
+  <div class="ctrl">
+    <label>Your word / phrase / emoji</label>
+    <input type="text" id="word" value="WALLPAPER" maxlength="30">
+  </div>
+
+  <hr class="divider">
+  <span class="section-label">Colors</span>
+
+  <div class="ctrl">
+    <label>Background</label>
+    <input type="color" id="bgColor" value="#1a1a2e">
+  </div>
+  <div class="ctrl">
+    <label>Text color — even rows</label>
+    <input type="color" id="txtColor" value="#4a9eff">
+  </div>
+  <div class="ctrl">
+    <label>Text color — odd rows</label>
+    <input type="color" id="offColor" value="#2a5faa">
+  </div>
+
+  <hr class="divider">
+  <span class="section-label">Layout</span>
+
+  <div class="ctrl">
+    <label>Font size</label>
+    <div class="ctrl-row">
+      <input type="range" id="fsize" min="6" max="48" value="14">
+      <span id="fsizeOut">14</span>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label>Column spacing</label>
+    <div class="ctrl-row">
+      <input type="range" id="colGap" min="20" max="220" value="80">
+      <span id="colGapOut">80</span>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label>Row spacing</label>
+    <div class="ctrl-row">
+      <input type="range" id="rowGap" min="10" max="100" value="30">
+      <span id="rowGapOut">30</span>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label>Row stagger offset %</label>
+    <div class="ctrl-row">
+      <input type="range" id="offset" min="0" max="100" value="50">
+      <span id="offsetOut">50</span>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label>Rotation °</label>
+    <div class="ctrl-row">
+      <input type="range" id="rot" min="-60" max="60" value="-20">
+      <span id="rotOut">-20</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <span class="section-label">File Format</span>
+  <div class="fmt-tabs">
+    <div class="fmt-tab active" data-fmt="png" onclick="selectFmt(this)">PNG</div>
+    <div class="fmt-tab" data-fmt="jpg" onclick="selectFmt(this)">JPG</div>
+  </div>
+
+  <hr class="divider">
+  <span class="section-label">Download Size</span>
+  <div class="size-tabs">
+    <div class="size-tab active" data-w="1920" data-h="1080" data-name="Desktop" onclick="selectSize(this)">Desktop<br>1920×1080</div>
+    <div class="size-tab" data-w="2048" data-h="2732" data-name="iPad" onclick="selectSize(this)">iPad<br>2048×2732</div>
+    <div class="size-tab" data-w="1290" data-h="2796" data-name="iPhone" onclick="selectSize(this)">iPhone<br>1290×2796</div>
+    <div class="size-tab" data-w="1080" data-h="2400" data-name="Android" onclick="selectSize(this)">Android<br>1080×2400</div>
+  </div>
+
+  <button class="dl-btn" onclick="download()">⬇ Download Wallpaper</button>
+  <button class="dl-btn secondary" onclick="downloadAll()">⬇ Download All 4 Sizes</button>
+</div>
+
+<div id="preview">
+  <div id="sizeLabel">PREVIEW — Desktop 1920×1080</div>
+  <canvas id="cv"></canvas>
+</div>
+
+<script>
+  const cv  = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+
+  let selectedW    = 1920;
+  let selectedH    = 1080;
+  let selectedName = 'Desktop';
+  let selectedFmt  = 'png';
+
+  // ── Format select ──
+  function selectFmt(el) {
+    document.querySelectorAll('.fmt-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    selectedFmt = el.dataset.fmt;
+  }
+
+  // ── Size select ──
+  function selectSize(el) {
+    document.querySelectorAll('.size-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    selectedW    = parseInt(el.dataset.w);
+    selectedH    = parseInt(el.dataset.h);
+    selectedName = el.dataset.name;
+    document.getElementById('sizeLabel').textContent =
+      `PREVIEW — ${selectedName} ${selectedW}×${selectedH}`;
+    resizeCanvas();
+  }
+
+  function resizeCanvas() {
+    const preview = document.getElementById('preview');
+    const maxW = preview.clientWidth  - 40;
+    const maxH = preview.clientHeight - 60;
+    const ratio = selectedW / selectedH;
+    let w = maxW, h = w / ratio;
+    if (h > maxH) { h = maxH; w = h * ratio; }
+    cv.width  = Math.round(w);
+    cv.height = Math.round(h);
+    draw();
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  // ── Sliders ──
+  ['fsize','colGap','rowGap','offset','rot'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      document.getElementById(id + 'Out').textContent = document.getElementById(id).value;
+      draw();
+    });
+  });
+  ['bgColor','txtColor','offColor','word'].forEach(id => {
+    document.getElementById(id).addEventListener('input', draw);
+  });
+
+  // ── Settings ──
+  function getSettings() {
+    return {
+      bg:     document.getElementById('bgColor').value,
+      tc:     document.getElementById('txtColor').value,
+      oc:     document.getElementById('offColor').value,
+      word:   document.getElementById('word').value || 'TEXT',
+      fs:     parseInt(document.getElementById('fsize').value),
+      cg:     parseInt(document.getElementById('colGap').value),
+      rg:     parseInt(document.getElementById('rowGap').value),
+      offPct: parseInt(document.getElementById('offset').value) / 100,
+      rot:    parseInt(document.getElementById('rot').value) * Math.PI / 180,
+    };
+  }
+
+  // ── Core draw — scale is calculated from canvas SHORT SIDE vs 1000px baseline ──
+  // This keeps text/spacing visually consistent across desktop (wide) and portrait (tall) sizes
+  function drawPattern(c, W, H, s) {
+    // Use the shorter dimension as the scaling reference so portrait sizes
+    // don't end up tiny compared to landscape desktop
+    const baseline = 1000;
+    const shortSide = Math.min(W, H);
+    const scale = shortSide / baseline;
+
+    const fs  = s.fs  * scale;
+    const cg  = s.cg  * scale;
+    const rg  = s.rg  * scale;
+
+    c.fillStyle = s.bg;
+    c.fillRect(0, 0, W, H);
+
+    c.save();
+    c.translate(W / 2, H / 2);
+    c.rotate(s.rot);
+    c.translate(-W, -H);
+
+    c.font = `${fs}px sans-serif`;
+    c.textBaseline = 'middle';
+
+    const cols = Math.ceil((W * 3) / cg) + 6;
+    const rows = Math.ceil((H * 3) / rg) + 6;
+
+    for (let r = 0; r < rows; r++) {
+      const odd    = r % 2 === 1;
+      const xShift = odd ? cg * s.offPct : 0;
+      c.fillStyle  = odd ? s.oc : s.tc;
+      for (let col = 0; col < cols; col++) {
+        c.fillText(s.word, col * cg + xShift - W * 0.5, r * rg - H * 0.5);
+      }
+    }
+    c.restore();
+  }
+
+  function draw() {
+    drawPattern(ctx, cv.width, cv.height, getSettings());
+  }
+
+  // ── Build a full-res canvas for a given size ──
+  function makeCanvas(W, H) {
+    const big = document.createElement('canvas');
+    big.width = W; big.height = H;
+    drawPattern(big.getContext('2d'), W, H, getSettings());
+    return big;
+  }
+
+  // ── Download helpers ──
+  function mimeType()  { return selectedFmt === 'jpg' ? 'image/jpeg' : 'image/png'; }
+  function extension() { return selectedFmt; }
+
+  function triggerDownload(canvas, filename) {
+    const quality = selectedFmt === 'jpg' ? 0.95 : undefined;
+    const a   = document.createElement('a');
+    a.download = filename;
+    a.href     = canvas.toDataURL(mimeType(), quality);
+    a.click();
+  }
+
+  function safeName() {
+    return (document.getElementById('word').value || 'wallpaper')
+      .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+  }
+
+  function download() {
+    const name = safeName() || 'wallpaper';
+    triggerDownload(
+      makeCanvas(selectedW, selectedH),
+      `wallpaper-${name}-${selectedName.toLowerCase()}-${selectedW}x${selectedH}.${extension()}`
+    );
+  }
+
+  function downloadAll() {
+    const sizes = [
+      { w: 1920, h: 1080, label: 'desktop'  },
+      { w: 2048, h: 2732, label: 'ipad'     },
+      { w: 1290, h: 2796, label: 'iphone'   },
+      { w: 1080, h: 2400, label: 'android'  },
+    ];
+    const name = safeName() || 'wallpaper';
+    sizes.forEach((sz, i) => {
+      setTimeout(() => {
+        triggerDownload(
+          makeCanvas(sz.w, sz.h),
+          `wallpaper-${name}-${sz.label}-${sz.w}x${sz.h}.${extension()}`
+        );
+      }, i * 500);
+    });
+  }
+
+  resizeCanvas();
+</script>
+</body>
+</html>
